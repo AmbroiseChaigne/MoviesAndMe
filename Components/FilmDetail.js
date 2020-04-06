@@ -2,11 +2,12 @@
 // Components/FilmDetail.js
 
 import React from 'react';
-import { StyleSheet, Share, Platform, View, Text, ActivityIndicator, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, Share, Platform, View, Text, ActivityIndicator, ScrollView, Image, TouchableOpacity, Alert, Button } from 'react-native';
 import { getFilmDetailFromApi, getImageFromApi } from '../API/TMDBApi';
 import moment from 'moment';
 import numeral from 'numeral';
 import { connect } from 'react-redux';
+import EnlargeShrink from '../Animations/EnlargeShrink';
 
 class FilmDetail extends React.Component {
 
@@ -15,14 +16,14 @@ class FilmDetail extends React.Component {
     // On accède à la fonction shareFilm et au film via les paramètres qu'on a ajouté à la navigation
     if (params.film != undefined && Platform.OS === 'ios') {
       return {
-          // On a besoin d'afficher une image, il faut donc passe par une Touchable une fois de plus
-          headerRight: <TouchableOpacity
-                          style={styles.share_touchable_headerrightbutton}
-                          onPress={() => params.shareFilm()}>
-                          <Image
-                            style={styles.share_image}
-                            source={require('../Images/ic_share.png')} />
-                        </TouchableOpacity>,
+        // On a besoin d'afficher une image, il faut donc passe par une Touchable une fois de plus
+        headerRight: <TouchableOpacity
+          style={styles.share_touchable_headerrightbutton}
+          onPress={() => params.shareFilm()}>
+          <Image
+            style={styles.share_image}
+            source={require('../Images/ic_share.png')} />
+        </TouchableOpacity>,
       };
     }
   }
@@ -33,6 +34,8 @@ class FilmDetail extends React.Component {
       film: undefined,
       isLoading: false,
     };
+
+    this._toggleFavorite = this._toggleFavorite.bind(this);
     this._shareFilm = this._shareFilm.bind(this);
   }
 
@@ -68,7 +71,7 @@ class FilmDetail extends React.Component {
 
   _shareFilm() {
     const { film } = this.state;
-    Share.share({ title: film.titre, message: film.overview});
+    Share.share({ title: film.title, message: film.overview });
   }
 
   _displayFloatingActionButton() {
@@ -99,19 +102,24 @@ class FilmDetail extends React.Component {
   _toggleFavorite() {
     const action = { type: 'TOGGLE_FAVORITE', value: this.state.film };
     this.props.dispatch(action);
-}
+  }
 
   _displayFavoriteImage() {
     var sourceImage = require('../Images/ic_favorite_border.png');
+    var shouldEnlarge = false; // Par défaut, si le film n'est pas en favoris, on veut qu'au clic sur le bouton, celui-ci s'agrandisse => shouldEnlarge à true
     if (this.props.favoritesFilm.findIndex(item => item.id === this.state.film.id) !== -1) {
       sourceImage = require('../Images/ic_favorite.png');
+      shouldEnlarge = true; // Si le film est dans les favoris, on veut qu'au clic sur le bouton, celui-ci se rétrécisse => shouldEnlarge à false
     }
     return (
-      <Image
-        source={sourceImage}
-        style={styles.favorite_image}
-      />
-    )
+      <EnlargeShrink
+        shouldEnlarge={shouldEnlarge}>
+        <Image
+          style={styles.favorite_image}
+          source={sourceImage}
+        />
+      </EnlargeShrink>
+    );
   }
 
   _displayFilm() {
@@ -121,12 +129,12 @@ class FilmDetail extends React.Component {
         <ScrollView style={styles.scrollview_container}>
           <Image
             style={styles.image}
-            source={{uri: getImageFromApi(film.backdrop_path)}}
+            source={{ uri: getImageFromApi(film.backdrop_path) }}
           />
           <Text style={styles.title_text}>{film.title}</Text>
           <TouchableOpacity
             style={styles.favorite_container}
-            onPress={ () => this._toggleFavorite()}>
+            onPress={() => this._toggleFavorite()}>
             {this._displayFavoriteImage()}
           </TouchableOpacity>
           <Text style={styles.description_text}>{film.overview}</Text>
@@ -134,13 +142,13 @@ class FilmDetail extends React.Component {
           <Text style={styles.default_text}>Note : {film.vote_average} / 10</Text>
           <Text style={styles.default_text}>Nombre de votes : {film.vote_count}</Text>
           <Text style={styles.default_text}>Budget : {numeral(film.budget).format('0,0[.]00 $')}</Text>
-          <Text style={styles.default_text}>Genre(s) : {film.genres.map(function(genre){
-              return genre.name;
-            }).join(' / ')}
+          <Text style={styles.default_text}>Genre(s) : {film.genres.map(function (genre) {
+            return genre.name;
+          }).join(' / ')}
           </Text>
-          <Text style={styles.default_text}>Companie(s) : {film.production_companies.map(function(company){
-              return company.name;
-            }).join(' / ')}
+          <Text style={styles.default_text}>Companie(s) : {film.production_companies.map(function (company) {
+            return company.name;
+          }).join(' / ')}
           </Text>
         </ScrollView>
       )
@@ -196,7 +204,7 @@ const styles = StyleSheet.create({
     margin: 5,
     marginBottom: 15,
   },
-  default_text: {
+  default_text: {
     marginLeft: 5,
     marginRight: 5,
     marginTop: 5,
@@ -205,8 +213,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   favorite_image: {
-    width: 40,
-    height: 40,
+    flex: 1,
+    width: null,
+    height: null,
   },
   share_touchable_floatingactionbutton: {
     position: 'absolute',
@@ -218,6 +227,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#e91e63',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  share_touchable_headerrightbutton: {
+    marginRight: 8,
   },
   share_image: {
     width: 30,
