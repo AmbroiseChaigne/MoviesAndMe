@@ -1,4 +1,6 @@
-import { createStore } from 'redux'
-import toggleFavorite from './Reducers/favoriteReducer'
+/* eslint-disable prettier/prettier */
 
-export default createStore(toggleFavorite)
+import { createStore } from 'redux';
+import toggleFavorite from './Reducers/favoriteReducer';
+
+export default createStore(toggleFavorite);

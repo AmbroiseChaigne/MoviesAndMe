@@ -1,53 +1,61 @@
+/* eslint-disable prettier/prettier */
 // Components/FilmDetail.js
 
-import React from 'react'
-import { StyleSheet, View, Text, ActivityIndicator, ScrollView, Image, TouchableOpacity } from 'react-native'
-import { getFilmDetailFromApi, getImageFromApi } from '../API/TMDBApi'
-import moment from 'moment'
-import numeral from 'numeral'
-import { connect } from 'react-redux'
+import React from 'react';
+import { StyleSheet, View, Text, ActivityIndicator, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { getFilmDetailFromApi, getImageFromApi } from '../API/TMDBApi';
+import moment from 'moment';
+import numeral from 'numeral';
+import { connect } from 'react-redux';
 
 class FilmDetail extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
       film: undefined,
-      isLoading: true
+      isLoading: false,
     }
   }
 
   componentDidMount() {
+    const favoriteFilmIndex = this.props.favoritesFilm.findIndex(item => item.id === this.props.navigation.state.params.idFilm);
+    if (favoriteFilmIndex !== -1) { // Film déjà dans nos favoris, on a déjà son détail
+      // Pas besoin d'appeler l'API ici, on ajoute le détail stocké dans notre state global au state de notre component
+      this.setState({
+        film: this.props.favoritesFilm[favoriteFilmIndex],
+      });
+      return;
+    }
+    // Le film n'est pas dans nos favoris, on n'a pas son détail
+    // On appelle l'API pour récupérer son détail
+    this.setState({ isLoading: true });
     getFilmDetailFromApi(this.props.navigation.state.params.idFilm).then(data => {
       this.setState({
         film: data,
-        isLoading: false
-      })
-    })
+        isLoading: false,
+      });
+    });
   }
 
   _displayLoading() {
     if (this.state.isLoading) {
       return (
         <View style={styles.loading_container}>
-          <ActivityIndicator size='large' />
+          <ActivityIndicator size="large" />
         </View>
-      )
+      );
     }
   }
 
   _toggleFavorite() {
-    const action = { type: "TOGGLE_FAVORITE", value: this.state.film }
-    this.props.dispatch(action)
+    const action = { type: 'TOGGLE_FAVORITE', value: this.state.film };
+    this.props.dispatch(action);
 }
 
-  componentDidUpdate() {
-    console.log(this.props.favoritesFilm);
-  }
-
   _displayFavoriteImage() {
-    var sourceImage = require('...Images/ic_favorite_border.png')
+    var sourceImage = require('../Images/ic_favorite_border.png');
     if (this.props.favoritesFilm.findIndex(item => item.id === this.state.film.id) !== -1) {
-      sourceImage = require('...Images/ic_favorite.png')
+      sourceImage = require('../Images/ic_favorite.png');
     }
     return (
       <Image
@@ -58,7 +66,7 @@ class FilmDetail extends React.Component {
   }
 
   _displayFilm() {
-    const { film } = this.state
+    const { film } = this.state;
     if (film != undefined) {
       return (
         <ScrollView style={styles.scrollview_container}>
@@ -79,11 +87,11 @@ class FilmDetail extends React.Component {
           <Text style={styles.default_text}>Budget : {numeral(film.budget).format('0,0[.]00 $')}</Text>
           <Text style={styles.default_text}>Genre(s) : {film.genres.map(function(genre){
               return genre.name;
-            }).join(" / ")}
+            }).join(' / ')}
           </Text>
           <Text style={styles.default_text}>Companie(s) : {film.production_companies.map(function(company){
               return company.name;
-            }).join(" / ")}
+            }).join(' / ')}
           </Text>
         </ScrollView>
       )
@@ -96,13 +104,13 @@ class FilmDetail extends React.Component {
         {this._displayLoading()}
         {this._displayFilm()}
       </View>
-    )
+    );
   }
 }
 
 const styles = StyleSheet.create({
   main_container: {
-    flex: 1
+    flex: 1,
   },
   loading_container: {
     position: 'absolute',
@@ -111,14 +119,14 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   scrollview_container: {
-    flex: 1
+    flex: 1,
   },
   image: {
     height: 169,
-    margin: 5
+    margin: 5,
   },
   title_text: {
     fontWeight: 'bold',
@@ -130,13 +138,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10,
     color: '#000000',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   description_text: {
     fontStyle: 'italic',
     color: '#666666',
     margin: 5,
-    marginBottom: 15
+    marginBottom: 15,
   },
   default_text: {
     marginLeft: 5,
@@ -144,18 +152,18 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   favorite_container: {
-    alignItems: 'center'
+    alignItems: 'center',
   },
   favorite_image: {
     width: 40,
-    height: 40
+    height: 40,
   }
 })
 
 const mapStateToProps = (state) => {
   return {
-    favoritesFilm: state.favoritesFilm
+    favoritesFilm: state.favoritesFilm,
   }
 }
 
-export default connect(mapStateToProps)(FilmDetail)
+export default connect(mapStateToProps)(FilmDetail);

@@ -1,3 +1,4 @@
+/*eslint-disable prettier/prettier */
 const API_TOKEN = '266da89ec6afdd00fa732f5bd1dca743';
 
 export function getFilmsFromApiWithSearchedText(text, page) {
