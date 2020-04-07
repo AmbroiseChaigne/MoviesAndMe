@@ -8,6 +8,7 @@ import { createStackNavigator } from 'react-navigation-stack';
 import Search from '../Components/Search';
 import FilmDetail from '../Components/FilmDetail';
 import Favorites from '../Components/Favorites';
+import News from '../Components/News';
 /*//Début import de test
 import Test from '../Components/Test';
 import Test2 from '../Components/Test2';
@@ -37,6 +38,18 @@ const FavoritesStackNavigator = createStackNavigator({
     },
 });
 
+const NewsStackNavigator = createStackNavigator({
+    News: {
+      screen: News,
+      navigationOptions: {
+        title: 'Les Derniers Films',
+      },
+    },
+    FilmDetail: {
+      screen: FilmDetail,
+    },
+  });
+
 const MoviesTabNavigator = createBottomTabNavigator(
     {
         /*//Début ajout de Test ou Test2
@@ -64,6 +77,16 @@ const MoviesTabNavigator = createBottomTabNavigator(
                 },
             },
         },
+        News: {
+            screen: NewsStackNavigator,
+            navigationOptions: {
+              tabBarIcon: () => {
+                return <Image
+                  source={require('../Images/ic_fiber_new.png')}
+                  style={styles.icon}/>;
+              },
+            },
+          },
     },
     {
         tabBarOptions: {
